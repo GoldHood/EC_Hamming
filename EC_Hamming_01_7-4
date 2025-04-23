@@ -1,0 +1,99 @@
+################################################################################
+# Detección y Corrección de Errores usando Hamming (7,4)
+# Mg. Ing. Martin Karlo Verastegui Ponce
+#
+# Implementación en Python para simular la transmisión de datos binarios
+# mediante un sistema que utiliza el código Hamming (7,4), capaz de:
+# - Codificar los datos
+# - Detectar errores de un solo bit
+# - Corregir automáticamente los errores detectados
+# - Decodificar y verificar la integridad de los datos
+#
+# Aplicación útil para enseñanza, demostraciones de sistemas de transmisión,
+# redes digitales, telecomunicaciones y sistemas embebidos.
+################################################################################
+
+def calcular_bits_paridad(datos):
+    d1, d2, d3, d4 = datos
+    p1 = (d1 + d2 + d4) % 2
+    p2 = (d1 + d3 + d4) % 2
+    p3 = (d2 + d3 + d4) % 2
+    return [p1, p2, p3]
+
+def codificar_hamming(datos):
+    p1, p2, p3 = calcular_bits_paridad(datos)
+    d1, d2, d3, d4 = datos
+    return [p1, p2, d1, p3, d2, d3, d4]
+
+def detectar_y_corregir(bits):
+    p1 = (bits[0] + bits[2] + bits[4] + bits[6]) % 2
+    p2 = (bits[1] + bits[2] + bits[5] + bits[6]) % 2
+    p3 = (bits[3] + bits[4] + bits[5] + bits[6]) % 2
+    posicion_error = p3 * 4 + p2 * 2 + p1
+    bits_corregidos = bits[:]
+    if posicion_error != 0:
+        bits_corregidos[posicion_error - 1] ^= 1
+    return posicion_error, bits_corregidos
+
+def decodificar_hamming(bits_corregidos):
+    d1 = bits_corregidos[2]
+    d2 = bits_corregidos[4]
+    d3 = bits_corregidos[5]
+    d4 = bits_corregidos[6]
+    return [d1, d2, d3, d4]
+
+# --------------------------------------------
+# 🔷 ENTRADA DE DATOS POR EL USUARIO
+# --------------------------------------------
+print("🧠 Agente de Corrección Hamming (7,4) v1.0")
+print("👨‍🏫 Autor: Mg. Ing. Martin Karlo Verastegui Ponce\n")
+
+while True:
+    entrada = input("Ingrese 4 bits separados por espacio (ej: 1 0 1 1): ")
+    try:
+        datos = list(map(int, entrada.strip().split()))
+        if len(datos) == 4 and all(bit in [0, 1] for bit in datos):
+            break
+        else:
+            print("❌ Ingrese exactamente 4 bits (0 o 1).")
+    except:
+        print("❌ Entrada inválida. Intente nuevamente.")
+
+# --------------------------------------------
+# 📦 CODIFICACIÓN
+# --------------------------------------------
+print("\n📦 Codificando los datos...")
+codificado = codificar_hamming(datos)
+print("✅ Datos codificados (7 bits):", codificado)
+
+# --------------------------------------------
+# ⚠️ SIMULACIÓN DE ERROR
+# --------------------------------------------
+con_error = codificado[:]
+con_error[3] ^= 1  # Error simulado en la posición 4
+print("⚠️ Se ha introducido un error en la posición 4:", con_error)
+
+# --------------------------------------------
+# 🛠️ DETECCIÓN Y CORRECCIÓN
+# --------------------------------------------
+pos_error, corregido = detectar_y_corregir(con_error)
+if pos_error:
+    print(f"🛠️ Error detectado en la posición {pos_error}. Bit corregido.")
+else:
+    print("✅ No se detectaron errores.")
+
+print("📨 Mensaje corregido:", corregido)
+
+# --------------------------------------------
+# 🔍 DECODIFICACIÓN FINAL
+# --------------------------------------------
+datos_decodificados = decodificar_hamming(corregido)
+print("🔍 Datos decodificados:", datos_decodificados)
+
+# --------------------------------------------
+# 🎉 VERIFICACIÓN FINAL
+# --------------------------------------------
+if datos == datos_decodificados:
+    print("🎉 ¡Éxito! Los datos fueron recuperados correctamente.")
+else:
+    print("❌ Los datos no coinciden con los originales.")
